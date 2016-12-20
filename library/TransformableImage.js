@@ -6,6 +6,7 @@ import { Image } from 'react-native';
 import ViewTransformer from 'react-native-view-transformer';
 
 let DEV = false;
+const CACHED_IMAGE_LOADTIME = 100;
 
 export default class TransformableImage extends Component {
 
