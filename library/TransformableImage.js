@@ -42,7 +42,9 @@ export default class TransformableImage extends Component {
 
       imageLoaded: false,
       pixels: undefined,
-      keyAcumulator: 1
+      keyAcumulator: 1,
+      placeHolderOpacity: 0,
+      imageOpacity: 0,
     };
   }
 
@@ -64,7 +66,8 @@ export default class TransformableImage extends Component {
     let maxScale = 1;
     let contentAspectRatio = undefined;
     let width, height; //pixels
-
+    let placeHolderImageSource = this.props.placeHolderImageSource || require("../images/placeholder.png")
+    
     if (this.props.pixels) {
       //if provided via props
       width = this.props.pixels.width;
@@ -101,12 +104,18 @@ export default class TransformableImage extends Component {
         style={this.props.style}>
         <Image
           {...this.props}
-          style={[this.props.style, {backgroundColor: 'transparent'}]}
+          style={[this.props.style, {backgroundColor: 'transparent'} ,{opacity: this.state.imageOpacity}]}
           resizeMode={'contain'}
           onLoadStart={this.onLoadStart.bind(this)}
           onLoad={this.onLoad.bind(this)}
           capInsets={{left: 0.1, top: 0.1, right: 0.1, bottom: 0.1}} //on iOS, use capInsets to avoid image downsampling
-        />
+        >
+          <Image
+            resizeMode={this.props.resizeMode || "contain"}
+            style={{flex:1,opacity: this.state.placeHolderOpacity, alignSelf:"center"}}
+            source={placeHolderImageSource}
+          />
+        </Image>
       </ViewTransformer>
     );
   }
@@ -116,12 +125,25 @@ export default class TransformableImage extends Component {
     this.setState({
       imageLoaded: false
     });
+
+    setTimeout((() => {
+      !this.state.imageLoaded && this.setState({placeHolderOpacity: 1, imageOpacity: 1});
+    }).bind(this), CACHED_IMAGE_LOADTIME)
   }
 
   onLoad(e) {
     this.props.onLoad && this.props.onLoad(e);
     this.setState({
+      placeHolderOpacity: 0, 
+      imageOpacity: 1,
       imageLoaded: true
+    });
+  }
+
+  onLoadEnd() {
+    this.props.onLoadEnd && this.props.onLoadEnd(e);
+    this.setState({
+        imageLoaded: true
     });
   }
 
