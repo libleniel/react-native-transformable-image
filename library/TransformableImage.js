@@ -34,6 +34,7 @@ export default class TransformableImage extends Component {
     enableScale: true,
     enableTranslate: true,
     shouldBlockNativeResponder: true,
+    placeHolderStyle:{}
   };
 
   constructor(props) {
@@ -94,7 +95,6 @@ export default class TransformableImage extends Component {
       }
     }
 
-
     return (
       <ViewTransformer
         ref='viewTransformer'
@@ -120,8 +120,8 @@ export default class TransformableImage extends Component {
           capInsets={{left: 0.1, top: 0.1, right: 0.1, bottom: 0.1}} //on iOS, use capInsets to avoid image downsampling
         >
           <Image
-            resizeMode={this.props.resizeMode || "contain"}
-            style={{flex:1,opacity: this.state.placeHolderOpacity, alignSelf:"center"}}
+            resizeMode={this.props.resizeMode || "cover"}
+            style={[{flex:1,opacity: this.state.placeHolderOpacity},this.props.placeHolderStyle]}
             source={placeHolderImageSource}
           />
         </Image>
@@ -171,7 +171,6 @@ export default class TransformableImage extends Component {
 
   getImageSize(source) {
     if(!source) return;
-
     DEV && console.log('getImageSize...' + JSON.stringify(source));
 
     if (typeof Image.getSize === 'function') {
