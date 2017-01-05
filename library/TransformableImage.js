@@ -32,7 +32,8 @@ export default class TransformableImage extends Component {
   static defaultProps = {
     enableTransform: true,
     enableScale: true,
-    enableTranslate: true
+    enableTranslate: true,
+    shouldBlockNativeResponder: true,
   };
 
   constructor(props) {
@@ -102,6 +103,7 @@ export default class TransformableImage extends Component {
         enableScale={this.props.enableScale}
         enableTranslate={this.props.enableTranslate}
         enableResistance={true}
+        shouldBlockNativeResponder={this.props.shouldBlockNativeResponder}
         onTransformGestureReleased={this.props.onTransformGestureReleased}
         onViewTransformed={this.props.onViewTransformed}
         onSingleTapConfirmed={this.props.onSingleTapConfirmed}
