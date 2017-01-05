@@ -149,7 +149,7 @@ export default class TransformableImage extends Component {
             imageLoaded: true
         });
     }).bind(this);
-    setTimeout(() => fn(), DELAY_SHOW_IMAGE_TIME) : fn();
+    this.state.placeHolderOpacity == 1 ? setTimeout(() => fn(), DELAY_SHOW_IMAGE_TIME) : fn();
   }
 
   onLoadEnd() {
