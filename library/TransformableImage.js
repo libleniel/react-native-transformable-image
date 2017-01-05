@@ -6,7 +6,8 @@ import { Image } from 'react-native';
 import ViewTransformer from 'react-native-view-transformer';
 
 let DEV = false;
-const CACHED_IMAGE_LOADTIME = 100;
+const CACHED_IMAGE_LOADTIME = 300;
+const DELAY_SHOW_IMAGE_TIME = 500;
 
 export default class TransformableImage extends Component {
 
@@ -54,13 +55,18 @@ export default class TransformableImage extends Component {
       this.getImageSize(this.props.source);
     }
   }
-
+  componentDidMount() {
+    this._mounted = true;
+  }
   componentWillReceiveProps(nextProps) {
     if (!sameSource(this.props.source, nextProps.source)) {
       //image source changed, clear last image's pixels info if any
       this.setState({pixels: undefined, keyAcumulator: this.state.keyAcumulator + 1})
       this.getImageSize(nextProps.source);
     }
+  }
+  componentWillUnmount() {
+    this._mounted = false;
   }
 
   render() {
@@ -128,17 +134,20 @@ export default class TransformableImage extends Component {
     });
 
     setTimeout((() => {
-      !this.state.imageLoaded && this.setState({placeHolderOpacity: 1, imageOpacity: 1});
+      this._mounted && !this.state.imageLoaded && this.setState({placeHolderOpacity: 1, imageOpacity: 1});
     }).bind(this), CACHED_IMAGE_LOADTIME)
   }
 
   onLoad(e) {
     this.props.onLoad && this.props.onLoad(e);
-    this.setState({
-      placeHolderOpacity: 0, 
-      imageOpacity: 1,
-      imageLoaded: true
-    });
+    let fn = (() => {
+        this.setState({
+            placeHolderOpacity: 0,
+            imageOpacity: 1,
+            imageLoaded: true
+        });
+    }).bind(this);
+    this.state.placeHolderOpacity == 1 ? setTimeout(() => fn(), DELAY_SHOW_IMAGE_TIME) : fn();
   }
 
   onLoadEnd() {
