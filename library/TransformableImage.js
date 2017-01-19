@@ -43,13 +43,12 @@ export default class TransformableImage extends Component {
     this.state = {
       width: 0,
       height: 0,
-
-      imageLoaded: false,
       pixels: undefined,
       keyAcumulator: 1,
       placeHolderOpacity: 0,
       imageOpacity: 0,
     };
+    this._imageLoaded = false;
   }
 
   componentWillMount() {
@@ -57,18 +56,12 @@ export default class TransformableImage extends Component {
       this.getImageSize(this.props.source);
     }
   }
-  componentDidMount() {
-    this._mounted = true;
-  }
   componentWillReceiveProps(nextProps) {
     if (!sameSource(this.props.source, nextProps.source)) {
       //image source changed, clear last image's pixels info if any
       this.setState({pixels: undefined, keyAcumulator: this.state.keyAcumulator + 1})
       this.getImageSize(nextProps.source);
     }
-  }
-  componentWillUnmount() {
-    this._mounted = false;
   }
 
   render() {
@@ -99,7 +92,7 @@ export default class TransformableImage extends Component {
       <ViewTransformer
         ref='viewTransformer'
         key={'viewTransformer#' + this.state.keyAccumulator} //when image source changes, we should use a different node to avoid reusing previous transform state
-        enableTransform={this.props.enableTransform && this.state.imageLoaded} //disable transform until image is loaded
+        enableTransform={this.props.enableTransform && this._imageLoaded} //disable transform until image is loaded
         enableScale={this.props.enableScale}
         enableTranslate={this.props.enableTranslate}
         enableResistance={true}
@@ -131,32 +124,21 @@ export default class TransformableImage extends Component {
 
   onLoadStart(e) {
     this.props.onLoadStart && this.props.onLoadStart(e);
-    this.setState({
-      imageLoaded: false
-    });
-
     setTimeout((() => {
-      this._mounted && !this.state.imageLoaded && this.setState({placeHolderOpacity: 1, imageOpacity: 1});
+      this._imageLoaded ? this.setState({placeHolderOpacity: 0, imageOpacity: 1}) : this.setState({placeHolderOpacity: 1, imageOpacity: 1});
     }).bind(this), CACHED_IMAGE_LOADTIME)
   }
 
   onLoad(e) {
     this.props.onLoad && this.props.onLoad(e);
-    let fn = (() => {
-        this.setState({
-            placeHolderOpacity: 0,
-            imageOpacity: 1,
-            imageLoaded: true
-        });
-    }).bind(this);
-    this.state.placeHolderOpacity == 1 ? setTimeout(() => fn(), DELAY_SHOW_IMAGE_TIME) : fn();
+    this._imageLoaded = true;
+    setTimeout(() => {
+        this.state.placeHolderOpacity == 1 && this.setState({placeHolderOpacity: 0, imageOpacity: 1})
+    }, DELAY_SHOW_IMAGE_TIME)
   }
 
   onLoadEnd() {
     this.props.onLoadEnd && this.props.onLoadEnd(e);
-    this.setState({
-        imageLoaded: true
-    });
   }
 
   onLayout(e) {
