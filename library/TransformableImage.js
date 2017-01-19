@@ -6,7 +6,6 @@ import { Image } from 'react-native';
 import ViewTransformer from 'react-native-view-transformer';
 
 let DEV = false;
-const CACHED_IMAGE_LOADTIME = 300;
 const DELAY_SHOW_IMAGE_TIME = 500;
 
 export default class TransformableImage extends Component {
@@ -111,52 +110,42 @@ export default class TransformableImage extends Component {
         contentAspectRatio={contentAspectRatio}
         onLayout={this.onLayout.bind(this)}
         style={this.props.style}>
-        <Image
-          {...this.props}
-          style={[this.props.style, {backgroundColor: 'transparent'} ,{opacity: this.state.imageOpacity}]}
-          resizeMode={'contain'}
-          onLoadStart={this.onLoadStart.bind(this)}
-          onLoad={this.onLoad.bind(this)}
-          capInsets={{left: 0.1, top: 0.1, right: 0.1, bottom: 0.1}} //on iOS, use capInsets to avoid image downsampling
-        >
+
           <Image
             resizeMode={this.props.resizeMode || "cover"}
-            style={[{flex:1,opacity: this.state.placeHolderOpacity},this.props.placeHolderStyle]}
+            style={[{flex:1},this.props.placeHolderStyle]}
             source={placeHolderImageSource}
-          />
-        </Image>
+          >
+            <Image
+                  {...this.props}
+                  style={[this.props.style, {backgroundColor: 'transparent'} ,{opacity: this.state.imageOpacity}]}
+                  resizeMode={'contain'}
+                  onLoadStart={this.onLoadStart.bind(this)}
+                  onLoad={this.onLoad.bind(this)}
+                  capInsets={{left: 0.1, top: 0.1, right: 0.1, bottom: 0.1}} //on iOS, use capInsets to avoid image downsampling
+            />
+           </Image>
+
       </ViewTransformer>
     );
   }
 
   onLoadStart(e) {
     this.props.onLoadStart && this.props.onLoadStart(e);
-    this.setState({
-      imageLoaded: false
-    });
-
-    setTimeout((() => {
-      this._mounted && !this.state.imageLoaded && this.setState({placeHolderOpacity: 1, imageOpacity: 1});
-    }).bind(this), CACHED_IMAGE_LOADTIME)
   }
 
   onLoad(e) {
     this.props.onLoad && this.props.onLoad(e);
     let fn = (() => {
         this.setState({
-            placeHolderOpacity: 0,
             imageOpacity: 1,
-            imageLoaded: true
         });
     }).bind(this);
-    this.state.placeHolderOpacity == 1 ? setTimeout(() => fn(), DELAY_SHOW_IMAGE_TIME) : fn();
+    setTimeout(() => fn(), DELAY_SHOW_IMAGE_TIME);
   }
 
   onLoadEnd() {
     this.props.onLoadEnd && this.props.onLoadEnd(e);
-    this.setState({
-        imageLoaded: true
-    });
   }
 
   onLayout(e) {
