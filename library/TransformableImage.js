@@ -55,6 +55,15 @@ export default class TransformableImage extends Component {
             this.getImageSize(this.props.source);
         }
     }
+
+    componentDidMount() {
+        this._isMounted = true;
+    }
+
+    componentWillUnmount() {
+        this._isMounted = false;
+    }
+
     componentWillReceiveProps(nextProps) {
         if (!sameSource(this.props.source, nextProps.source)) {
             //image source changed, clear last image's pixels info if any
@@ -127,19 +136,17 @@ export default class TransformableImage extends Component {
     onLoad(e) {
         this.props.onLoad && this.props.onLoad(e);
         setTimeout(() => {
-            this.setState({
-                imageOpacity: 1,
-                placeHolderImageSource: this.props.source,
-                imageLoaded: true,
-                // A issue is when the parent's opacity set to 0.5, both 2 images also be displayed(<TouchableOpacity><RbzImage</TouchableOpacity>)
-                // so set placeHolder source become really image's source also, to avoid the issue.
-            })
-
+            // Only update this state if component is still mounted, as I couldn't find a clean way to stop Image from calling onLoad.
+            if (this._isMounted) {
+                this.setState({
+                    imageOpacity: 1,
+                    placeHolderImageSource: this.props.source,
+                    imageLoaded: true,
+                    // A issue is when the parent's opacity set to 0.5, both 2 images also be displayed(<TouchableOpacity><RbzImage</TouchableOpacity>)
+                    // so set placeHolder source become really image's source also, to avoid the issue.
+                })
+            }
         }, DELAY_SHOW_IMAGE_TIME)
-    }
-
-    onLoadEnd() {
-        this.props.onLoadEnd && this.props.onLoadEnd(e);
     }
 
     onLayout(e) {
