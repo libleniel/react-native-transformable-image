@@ -25,7 +25,8 @@ export default class TransformableImage extends Component {
         enableTranslate: PropTypes.bool,
         onSingleTapConfirmed: PropTypes.func,
         onTransformGestureReleased: PropTypes.func,
-        onViewTransformed: PropTypes.func
+        onViewTransformed: PropTypes.func,
+        onImageMove: PropTypes.func,
     };
 
     static defaultProps = {
@@ -33,7 +34,7 @@ export default class TransformableImage extends Component {
         enableScale: true,
         enableTranslate: true,
         shouldBlockNativeResponder: true,
-        placeHolderStyle:{}
+        placeHolderStyle:{},
     };
 
     constructor(props) {
@@ -97,36 +98,39 @@ export default class TransformableImage extends Component {
 
         return (
             <ViewTransformer
-                ref='viewTransformer'
-                key={'viewTransformer#' + this.state.keyAccumulator} //when image source changes, we should use a different node to avoid reusing previous transform state
-                enableTransform={this.props.enableTransform && this.state.imageLoaded} //disable transform until image is loaded
-                enableScale={this.props.enableScale}
-                enableTranslate={this.props.enableTranslate}
-                enableResistance={true}
-                shouldBlockNativeResponder={this.props.shouldBlockNativeResponder}
-                onTransformGestureReleased={this.props.onTransformGestureReleased}
-                onViewTransformed={this.props.onViewTransformed}
-                onSingleTapConfirmed={this.props.onSingleTapConfirmed}
-                maxScale={maxScale}
-                contentAspectRatio={contentAspectRatio}
-                onLayout={this.onLayout.bind(this)}
-                style={this.props.style}>
+        ref='viewTransformer'
+        key={'viewTransformer#' + this.state.keyAccumulator} //when image source changes, we should use a different node to avoid reusing previous transform state
+        enableTransform={this.props.enableTransform && this.state.imageLoaded} //disable transform until image is loaded
+        enableScale={this.props.enableScale}
+        enableTranslate={this.props.enableTranslate}
+        enableResistance={true}
+        shouldBlockNativeResponder={this.props.shouldBlockNativeResponder}
+        onTransformGestureReleased={this.props.onTransformGestureReleased}
+        onViewTransformed={this.props.onViewTransformed}
+        onSingleTapConfirmed={this.props.onSingleTapConfirmed}
+        maxScale={maxScale}
+        contentAspectRatio={contentAspectRatio}
+        onLayout={this.onLayout.bind(this)}
+        style={this.props.style}
+        onImageMove={this.props.onImageMove}
+        isResetScale={this.props.isResetScale}
+    >
 
-              <Image
-                  resizeMode={this.props.resizeMode}
-                  style={[{flex:1, width:null, height:null},this.props.placeHolderStyle]}
-                  source={this.state.placeHolderImageSource}
-              >
-                <Image
-                    {...this.props}
-                    style={[this.props.style, {backgroundColor: 'transparent', opacity: this.state.imageOpacity}]}
-                    onLoadStart={this.onLoadStart.bind(this)}
-                    onLoad={this.onLoad.bind(this)}
-                    capInsets={{left: 0.1, top: 0.1, right: 0.1, bottom: 0.1}} //on iOS, use capInsets to avoid image downsampling
-                />
-              </Image>
-            </ViewTransformer>
-        );
+    <Image
+        resizeMode={this.props.resizeMode}
+        style={[{flex:1, width:null, height:null},this.props.placeHolderStyle]}
+        source={this.state.placeHolderImageSource}
+    >
+    <Image
+        {...this.props}
+        style={[this.props.style, {backgroundColor: 'transparent', opacity: this.state.imageOpacity}]}
+        onLoadStart={this.onLoadStart.bind(this)}
+        onLoad={this.onLoad.bind(this)}
+        capInsets={{left: 0.1, top: 0.1, right: 0.1, bottom: 0.1}} //on iOS, use capInsets to avoid image downsampling
+    />
+    </Image>
+        </ViewTransformer>
+    );
     }
 
     onLoadStart(e) {
@@ -138,15 +142,15 @@ export default class TransformableImage extends Component {
         setTimeout(() => {
             // Only update this state if component is still mounted, as I couldn't find a clean way to stop Image from calling onLoad.
             if (this._isMounted) {
-                this.setState({
-                    imageOpacity: 1,
-                    placeHolderImageSource: this.props.source,
-                    imageLoaded: true,
-                    // A issue is when the parent's opacity set to 0.5, both 2 images also be displayed(<TouchableOpacity><RbzImage</TouchableOpacity>)
-                    // so set placeHolder source become really image's source also, to avoid the issue.
-                })
-            }
-        }, DELAY_SHOW_IMAGE_TIME)
+            this.setState({
+                imageOpacity: 1,
+                placeHolderImageSource: this.props.source,
+                imageLoaded: true,
+                // A issue is when the parent's opacity set to 0.5, both 2 images also be displayed(<TouchableOpacity><RbzImage</TouchableOpacity>)
+                // so set placeHolder source become really image's source also, to avoid the issue.
+            })
+        }
+    }, DELAY_SHOW_IMAGE_TIME)
     }
 
     onLayout(e) {
@@ -168,18 +172,18 @@ export default class TransformableImage extends Component {
                 Image.getSize(
                     source.uri,
                     (width, height) => {
-                        DEV && console.log('getImageSize...width=' + width + ', height=' + height);
-                        if (width && height) {
-                            if(this.state.pixels && this.state.pixels.width === width && this.state.pixels.height === height) {
-                                //no need to update state
-                            } else {
-                                this.setState({pixels: {width, height}});
-                            }
-                        }
-                    },
-                    (error) => {
-                        console.error('getImageSize...error=' + JSON.stringify(error) + ', source=' + JSON.stringify(source));
-                    })
+                    DEV && console.log('getImageSize...width=' + width + ', height=' + height);
+                if (width && height) {
+                    if(this.state.pixels && this.state.pixels.width === width && this.state.pixels.height === height) {
+                        //no need to update state
+                    } else {
+                        this.setState({pixels: {width, height}});
+                    }
+                }
+            },
+                (error) => {
+                    console.error('getImageSize...error=' + JSON.stringify(error) + ', source=' + JSON.stringify(source));
+                })
             } else {
                 console.warn('getImageSize...please provide pixels prop for local images');
             }
@@ -187,7 +191,6 @@ export default class TransformableImage extends Component {
             console.warn('getImageSize...Image.getSize function not available before react-native v0.28');
         }
     }
-
     getViewTransformerInstance() {
         return this.refs['viewTransformer'];
     }
