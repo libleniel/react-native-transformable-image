@@ -1,7 +1,7 @@
 'use strict';
 
 import React, { Component } from 'react';
-import { Image } from 'react-native';
+import { Image, ImageBackground } from 'react-native';
 import PropTypes from 'prop-types';
 import ViewTransformer from 'react-native-view-transformer';
 
@@ -116,7 +116,7 @@ export default class TransformableImage extends Component {
         isResetScale={this.props.isResetScale}
     >
 
-    <Image
+    <ImageBackground
         resizeMode={this.props.resizeMode}
         style={[{flex:1, width:null, height:null},this.props.placeHolderStyle]}
         source={this.state.placeHolderImageSource}
@@ -128,7 +128,7 @@ export default class TransformableImage extends Component {
         onLoad={this.onLoad.bind(this)}
         capInsets={{left: 0.1, top: 0.1, right: 0.1, bottom: 0.1}} //on iOS, use capInsets to avoid image downsampling
     />
-    </Image>
+    </ImageBackground>
         </ViewTransformer>
     );
     }
