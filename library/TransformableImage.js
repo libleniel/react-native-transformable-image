@@ -48,13 +48,28 @@ export default class TransformableImage extends Component {
             imageOpacity: 0,
             placeHolderImageSource: this.props.placeHolderImageSource || require("../images/placeholder.png"),
             imageLoaded: false,
+            uri: this.props.source && this.props.source.uri
         };
     }
 
-    componentWillMount() {
-        if (!this.props.pixels) {
-            this.getImageSize(this.props.source);
+    static getDerivedStateFromProps(props, state) {
+        if (!props.pixels) {
+            return {
+                ...state,
+                ...TransformableImage.getImageSize(props.source, state)
+            }
+        } else if ((props && props.source && state) && props.source.uri != state.uri) {
+            return {
+                ...state,
+                uri: props.uri,
+                pixels: undefined, 
+                keyAcumulator: state.keyAcumulator + 1,
+                ...TransformableImage.getImageSize(props.source, state)
+
+            }
         }
+
+        return null
     }
 
     componentDidMount() {
@@ -63,14 +78,6 @@ export default class TransformableImage extends Component {
 
     componentWillUnmount() {
         this._isMounted = false;
-    }
-
-    componentWillReceiveProps(nextProps) {
-        if (!sameSource(this.props.source, nextProps.source)) {
-            //image source changed, clear last image's pixels info if any
-            this.setState({pixels: undefined, keyAcumulator: this.state.keyAcumulator + 1})
-            this.getImageSize(nextProps.source);
-        }
     }
 
     render() {
@@ -163,7 +170,7 @@ export default class TransformableImage extends Component {
         }
     }
 
-    getImageSize(source) {
+    static getImageSize(source, currentState) {
         if(!source) return;
         DEV && console.log('getImageSize...' + JSON.stringify(source));
 
@@ -174,10 +181,11 @@ export default class TransformableImage extends Component {
                     (width, height) => {
                     DEV && console.log('getImageSize...width=' + width + ', height=' + height);
                 if (width && height) {
-                    if(this.state.pixels && this.state.pixels.width === width && this.state.pixels.height === height) {
+                    if(currentState && currentState.pixels && currentState.pixels.width === width && currentState.pixels.height === height) {
                         //no need to update state
+                        return null
                     } else {
-                        this.setState({pixels: {width, height}});
+                        return {pixels: {width, height}};
                     }
                 }
             },
@@ -194,16 +202,4 @@ export default class TransformableImage extends Component {
     getViewTransformerInstance() {
         return this.refs['viewTransformer'];
     }
-}
-
-function sameSource(source, nextSource) {
-    if (source === nextSource) {
-        return true;
-    }
-    if (source && nextSource) {
-        if (source.uri && nextSource.uri) {
-            return source.uri === nextSource.uri;
-        }
-    }
-    return false;
 }
