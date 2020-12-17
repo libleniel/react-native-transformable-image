@@ -105,39 +105,50 @@ export default class TransformableImage extends Component {
 
         return (
             <ViewTransformer
-        ref='viewTransformer'
-        key={'viewTransformer#' + this.state.keyAccumulator} //when image source changes, we should use a different node to avoid reusing previous transform state
-        enableTransform={this.props.enableTransform && this.state.imageLoaded} //disable transform until image is loaded
-        enableScale={this.props.enableScale}
-        enableTranslate={this.props.enableTranslate}
-        enableResistance={true}
-        shouldBlockNativeResponder={this.props.shouldBlockNativeResponder}
-        onTransformGestureReleased={this.props.onTransformGestureReleased}
-        onViewTransformed={this.props.onViewTransformed}
-        onSingleTapConfirmed={this.props.onSingleTapConfirmed}
-        maxScale={maxScale}
-        contentAspectRatio={contentAspectRatio}
-        onLayout={this.onLayout.bind(this)}
-        style={this.props.style}
-        onImageMove={this.props.onImageMove}
-        isResetScale={this.props.isResetScale}
-    >
+                ref='viewTransformer'
+                key={'viewTransformer#' + this.state.keyAccumulator} //when image source changes, we should use a different node to avoid reusing previous transform state
+                enableTransform={this.props.enableTransform && this.state.imageLoaded} //disable transform until image is loaded
+                enableScale={this.props.enableScale}
+                enableTranslate={this.props.enableTranslate}
+                enableResistance={true}
+                shouldBlockNativeResponder={this.props.shouldBlockNativeResponder}
+                onTransformGestureReleased={this.props.onTransformGestureReleased}
+                onViewTransformed={this.props.onViewTransformed}
+                onSingleTapConfirmed={this.props.onSingleTapConfirmed}
+                maxScale={maxScale}
+                contentAspectRatio={contentAspectRatio}
+                onLayout={this.onLayout.bind(this)}
+                style={this.props.style}
+                onImageMove={this.props.onImageMove}
+                isResetScale={this.props.isResetScale}
+            >
 
-    <ImageBackground
-        resizeMode={this.props.resizeMode}
-        style={[{flex:1, width:null, height:null},this.props.placeHolderStyle]}
-        source={this.state.placeHolderImageSource}
-    >
-    <Image
-        {...this.props}
-        style={[this.props.style, {backgroundColor: 'transparent', opacity: this.state.imageOpacity}]}
-        onLoadStart={this.onLoadStart.bind(this)}
-        onLoad={this.onLoad.bind(this)}
-        capInsets={{left: 0.1, top: 0.1, right: 0.1, bottom: 0.1}} //on iOS, use capInsets to avoid image downsampling
-    />
-    </ImageBackground>
-        </ViewTransformer>
-    );
+            {this.props.placeHolderImageSource ? (
+                <ImageBackground
+                resizeMode={this.props.resizeMode}
+                style={[{flex:1, width:null, height:null},this.props.placeHolderStyle]}
+                source={this.state.placeHolderImageSource}
+                >
+                <Image
+                    {...this.props}
+                    style={[this.props.style, {backgroundColor: 'transparent', opacity: this.state.imageOpacity}]}
+                    onLoadStart={this.onLoadStart.bind(this)}
+                    onLoad={this.onLoad.bind(this)}
+                    capInsets={{left: 0.1, top: 0.1, right: 0.1, bottom: 0.1}} //on iOS, use capInsets to avoid image downsampling
+                />
+                </ImageBackground>
+            ) : ( 
+                <Image
+                    {...this.props}
+                    style={[this.props.placeHolderStyle, this.props.style, {backgroundColor: 'transparent', opacity: this.state.imageOpacity}]}
+                    onLoadStart={this.onLoadStart.bind(this)}
+                    onLoad={this.onLoad.bind(this)}
+                    capInsets={{left: 0.1, top: 0.1, right: 0.1, bottom: 0.1}} //on iOS, use capInsets to avoid image downsampling
+                />
+            )}
+    
+            </ViewTransformer>
+        );
     }
 
     onLoadStart(e) {
@@ -151,7 +162,7 @@ export default class TransformableImage extends Component {
             if (this._isMounted) {
             this.setState({
                 imageOpacity: 1,
-                placeHolderImageSource: this.props.source,
+                placeHolderImageSource: null,//this.props.source,
                 imageLoaded: true,
                 // A issue is when the parent's opacity set to 0.5, both 2 images also be displayed(<TouchableOpacity><RbzImage</TouchableOpacity>)
                 // so set placeHolder source become really image's source also, to avoid the issue.
